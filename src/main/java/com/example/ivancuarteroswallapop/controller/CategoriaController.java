@@ -1,0 +1,51 @@
+package com.example.ivancuarteroswallapop.controller;
+
+import com.example.ivancuarteroswallapop.DTO.CategoriaCosteMedioDTO;
+import com.example.ivancuarteroswallapop.entity.Categoria;
+import com.example.ivancuarteroswallapop.service.CategoriaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+@Controller
+public class CategoriaController {
+    @Autowired
+    private CategoriaService categoriaService;
+
+    @GetMapping("/categorias")
+    public String categoria(Model model) {
+        List<CategoriaCosteMedioDTO> categoriasConStats = categoriaService.obtenerCategoriasConStats();
+        model.addAttribute("categorias", categoriasConStats);
+        return "categoria-list";
+    }
+
+    @GetMapping("/categoria/delete/{id}")
+    public String borrarCategoria(@PathVariable("id") Long id) {
+        categoriaService.eliminarCategoria(id);
+        return "redirect:/categorias";
+    }
+
+    @GetMapping("/categorias/new")
+    public String addCategoria(Model model) {
+        model.addAttribute("categoria", new Categoria());
+        return "categoria-new";
+    }
+
+    @PostMapping("/categorias/new")
+    public String addCategoriaInsert(@ModelAttribute("categoria") Categoria categoria,
+                                     @RequestParam("file") MultipartFile file,
+                                     RedirectAttributes redirectAttributes,
+                                     Model model) {
+        try {
+            categoriaService.guardarCategoria(categoria, file);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("mensaje",e.getMessage());
+            return "categoria-new";
+        }
+        return "redirect:/categorias";
+    }
+}
